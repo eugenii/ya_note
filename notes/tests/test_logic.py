@@ -78,7 +78,7 @@ class TestNoteEditDelete(TestCase):
         # URL для удаления комментария.
         cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))  
         # Формируем данные для POST-запроса по обновлению заметки.
-        cls.form_data = {'text': cls.NEW_NOTE_TEXT}  
+        cls.form_data = {'text': cls.NEW_NOTE_TEXT, 'author': cls.author, 'title': 'Заголовок2', 'slug': 'slugslug'}  
 
     def test_author_can_delete_note(self):
         # От имени автора заметки отправляем DELETE-запрос на удаление.
@@ -119,3 +119,4 @@ class TestNoteEditDelete(TestCase):
         self.note.refresh_from_db()
         # Проверяем, что текст остался тем же, что и был.
         self.assertEqual(self.note.text, self.NOTE_TEXT) 
+
