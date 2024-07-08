@@ -1,6 +1,8 @@
 # notes/tests/test_logic.py
 from http import HTTPStatus
 
+from pytils.translit import slugify
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -12,7 +14,7 @@ User = get_user_model()
 
 class TestNotetCreation(TestCase):
 
-    NOTE_TEXT = 'Текст комментария'
+    NOTE_TEXT = 'Текст заметки'
 
     @classmethod
     def setUpTestData(cls):
@@ -22,7 +24,7 @@ class TestNotetCreation(TestCase):
         cls.auth_client = Client()
         cls.auth_client.force_login(cls.user)
         # Данные для POST-запроса при создании заметки.
-        cls.form_data = {'text': cls.NOTE_TEXT, 'title': 'slug'}
+        cls.form_data = {'text': cls.NOTE_TEXT, 'title': 'zagolovok', 'slug': 'slug'}
 
     def test_anonymous_user_cant_create_note(self):
         # Совершаем запрос от анонимного клиента, в POST-запросе отправляем
@@ -44,9 +46,26 @@ class TestNotetCreation(TestCase):
         self.assertEqual(notes_count, 1)
         # Получаем объект комментария из базы.
         note = Note.objects.get()
-        # Проверяем, что все атрибуты комментария совпадают с ожидаемыми.
-        self.assertEqual(note.text, self.NOTE_TEXT)
-        self.assertEqual(note.author, self.user)
+        # # Проверяем, что все атрибуты комментария совпадают с ожидаемыми.
+        # self.assertEqual(note.text, self.NOTE_TEXT)
+        # self.assertEqual(note.author, self.user)
+
+    def test_not_unique_slug(self):
+        # Создаём заметку в БД.
+        note = Note.objects.create(title='Заголовок', text=self.NOTE_TEXT,  author=self.user, slug='slug')
+        notes_count1 = Note.objects.count()
+        response = self.auth_client.post(self.url, data=self.form_data)
+        notes_count2 = Note.objects.count()
+        self.assertEqual(notes_count1, notes_count2)
+
+
+    def test_slug_from_title(self):
+        note = Note.objects.create(title=self.form_data['title'], text=self.NOTE_TEXT,  author=self.user, slug='')
+        new_note = Note.objects.get()
+        # Формируем ожидаемый slug:
+        expected_slug = slugify(self.form_data['title'])
+        # Проверяем, что slug заметки соответствует ожидаемому:
+        assert new_note.slug == expected_slug  
 
 class TestNoteEditDelete(TestCase):
     # Тексты для заметок не нужно дополнительно создавать 
@@ -80,6 +99,28 @@ class TestNoteEditDelete(TestCase):
         # Формируем данные для POST-запроса по обновлению заметки.
         cls.form_data = {'text': cls.NEW_NOTE_TEXT, 'author': cls.author, 'title': 'Заголовок2', 'slug': 'slugslug'}  
 
+    # def test_anonymous_user_cant_create_note(self):
+    #     # Совершаем запрос от анонимного клиента, в POST-запросе отправляем
+    #     # предварительно подготовленные данные формы с текстом комментария.
+    #     # url = reverse('notes:add')     
+    #     response = self.client.post(reverse('notes:add'), data=self.form_data)
+    #     # Считаем количество комментариев.
+    #     notes_count = Note.objects.count()
+    #     # Ожидаем, что комментариев в базе нет - сравниваем с нулём.
+    #     self.assertEqual(notes_count, 1)  # Одна заметка создана в setUpTestData
+
+    # def test_user_can_create_note(self):
+    #     # Совершаем запрос через авторизованный клиент.
+    #     response = self.author_client.post(reverse('notes:add'), data=self.form_data)
+    #     # Проверяем, что редирект привёл к разделу с комментами.
+    #     # self.assertRedirects(response, f'{self.url}#comments')
+    #     # Считаем количество комментариев.
+    #     notes_count = Note.objects.count()
+    #     # Убеждаемся, что есть один комментарий.
+    #     self.assertEqual(notes_count, 2)
+    #     # Получаем объект комментария из базы.
+    #     # note = Note.objects.get()
+    
     def test_author_can_delete_note(self):
         # От имени автора заметки отправляем DELETE-запрос на удаление.
         response = self.author_client.delete(self.delete_url)

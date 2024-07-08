@@ -61,16 +61,3 @@ class TestHomePage(TestCase):
         # Проверим, что объект формы соответствует нужному классу формы.
         self.assertIsInstance(response.context['form'], NoteForm) 
 
-        
-    #     # breakpoint()
-    #     
-
-    #     # Определяем количество записей в списке.
-    #     # notes_count = object_list.count()
-    #     # Сортируем полученный список по убыванию.
-    #     # sorted_ids = sorted(all_ids, reverse=True)
-    #     # Проверяем, что исходный список был отсортирован правильно.
-    #     # self.assertEqual(all_ids, sorted_ids)
-    #     # print(notes_count)
-        
-           

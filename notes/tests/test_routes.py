@@ -1,17 +1,11 @@
-# notes/tests/test_routes.py
-# Импортируем класс HTTPStatus.
 from http import HTTPStatus
 
-# Импортируем функцию для определения модели пользователя.
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-# Импортируем функцию reverse().
 from django.urls import reverse
 
-# Импортируем класс комментария.
 from notes.models import Note
 
-# Получаем модель пользователя.
 User = get_user_model()
 
 
@@ -61,7 +55,7 @@ class TestRoutes(TestCase):
     def test_availability_for_autors_pages_and_actions(self):
         users_statuses = (
             (self.author, HTTPStatus.OK),  # авторизованный должен получить ответ OK,
-            # (self.reader, HTTPStatus.NOT_FOUND),  # неавторизованный должен получить ответ NOT_FOUND. !!!!!!!!! НЕ ЗАБЫТЬ !!!!!!!
+            (self.reader, HTTPStatus.NOT_FOUND),  # неавторизованный должен получить ответ NOT_FOUND.
         )
         for user, status in users_statuses:
             # Логиним пользователя в клиенте:
